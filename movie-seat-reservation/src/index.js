@@ -2,7 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './index.css';
-import SeatMap from './SeatMap.js'
 import ScreenMap from './ScreenMap.js'
 import SelectedSeatsInfoTable from './SelectedSeatsInfoTable.js'
 
@@ -23,12 +22,17 @@ class App extends React.Component {
     this.updateSeats = this.updateSeats.bind(this);
     this.updateSeatCounter = this.updateSeatCounter.bind(this);
     this.handleSeatConfirmation = this.handleSeatConfirmation.bind(this);
+    this.validateName = this.validateName.bind(this);
   }
-  updateSeatCounter(seatId, mode){
-    if(this.state.seats != 0 && this.state.seats == this.state.selectCount  ){
-      alert("you cant select more seats than asked for!");
-      return 0;
-    }
+
+ updateSeatCounter(seatId, mode){
+   if(mode === "empty"){
+     if(this.state.seats != 0 && this.state.seats == this.state.selectCount  ){
+       alert("You can't select more seats than asked for!");
+       return 0;
+     }
+   }
+
     var occupied = this.state.selected;
     var count = this.state.selectCount;
     if(mode==="empty"){
@@ -41,7 +45,7 @@ class App extends React.Component {
     }
     this.setState({selectCount: count, selected: occupied});
     return 1;
-  }
+ }
 
   updateName(e) {
     this.setState({name: e.target.value});
@@ -51,40 +55,53 @@ class App extends React.Component {
     this.setState({seats: e.target.value});
   }
 
+validateName(){
+  var name = this.state.name.trim();
+  if(name === ""){
+    alert("Please enter name");
+    return 0;
+  }
+
+  var isAlpha = /^[A-Za-z\s]+$/.test(name);
+  if(!isAlpha){
+    alert("Name must contain only letters and spaces");
+    return 0;
+  }
+  return 1;
+}
+
   handleSeatSelection() {
-    if(this.state.name === ""){
-      alert("please enter name");
+    if(!this.validateName()){
+      return;
+    }
+    if(this.state.seats == 0){
+      alert("Please enter no. of seats");
       return;
     }
 
-    var isAlpha = /^[A-Za-z\s]+$/.test(this.state.name);
-    if(!isAlpha){
-      alert("Name must contain only letters");
-    }
-
-    if(this.state.seats === 0){
-      alert("please enter no. of seats");
-      return;
-    }
-
-    if(isNaN(this.state.seats)){
-      alert("Number of seats must contain only digits");
+    var isNum = /^\d+$/.test(this.state.seats);
+    if(!isNum){
+      alert("Number of seats must contain only positive numbers");
       return;
     }
 
     if(this.state.seats > this.state.remaining){
-      alert("please enter fewer no. of seats. Remaining seats are" + this.state.remaining);
+      alert("Please enter fewer no. of seats. Remaining seats are" + this.state.remaining);
       return;
     }
     this.setState({allowSelection: true});
   }
 
   handleSeatConfirmation() {
-    if(this.state.seats===0){
+    if(!this.validateName()){
+      return;
+    }
+    if(this.state.seats==0){
+      alert("Number of seats can't be Zero.");
       return;
     }
     if(this.state.seats>this.state.selectCount){
-      alert("selected fewer seats than asked for. please select more or ask less.");
+      alert("Selected fewer seats than asked for. Please select more or ask less.");
       return;
     }
     var reserved="";
@@ -105,7 +122,7 @@ class App extends React.Component {
 
     this.setState(
       {history: this.state.history.concat([
-            {name: this.state.name, count: this.state.seats, seats: reserved}
+            {name: this.state.name, count: this.state.selectCount, seats: reserved}
           ])}
     );
 
